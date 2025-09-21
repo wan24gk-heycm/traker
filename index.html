@@ -1,75 +1,211 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Habit Tracker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-    .habit {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 10px 0;
-      font-size: 18px;
-    }
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      margin-right: 10px;
-      cursor: pointer;
-    }
-    .reset {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .reset:hover {
-      background: #0056b3;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Trackers Vidriosos</title>
+<style>
+body {
+  background: #161616;
+  color: white;
+  margin: 0;
+  display: grid;
+  place-content: center;
+  min-height: 100vh;
+  font-family: monospace;
+}
+
+.wrapper {
+  display: grid;
+}
+
+.x {
+  width: 100%;
+  overflow-x: auto;
+  padding: 1ch;
+}
+
+/* Grid de días */
+#activity-graph {
+  display: grid;
+  grid-template-rows: repeat(7, 2ch);
+  grid-auto-flow: column;
+  gap: 0.25ch;
+}
+
+/* Baldosas vidriosas */
+.day {
+  --l: 0.8;
+  --h: 243;
+  opacity: 0.5;
+  width: 2ch;
+  aspect-ratio: 1;
+  border-radius: 0.25ch;
+  background-color: oklch(from #166496 var(--l) c var(--h));
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+
+  /* efecto vidrioso */
+  box-shadow: inset 0 0 2px rgba(255,255,255,0.3),
+              inset 0 -2px 3px rgba(0,0,0,0.5),
+              0 1px 2px rgba(0,0,0,0.6);
+  background-image: linear-gradient(145deg, rgba(255,255,255,0.15), rgba(0,0,0,0.1));
+}
+
+.day:hover {
+  box-shadow: inset 0 0 3px rgba(255,255,255,0.4),
+              inset 0 -2px 4px rgba(0,0,0,0.5),
+              0 0 3px rgba(255,255,255,0.2);
+  opacity: 1;
+}
+
+/* Intensidad por nivel */
+.level-0 { --l: 0.8; opacity: 0.5; }
+.level-1 { --l: 0.7; opacity: 1; }
+.level-2 { --l: 0.6; opacity: 1; }
+.level-3 { --l: 0.5; opacity: 1; }
+.level-4 { --l: 0.4; opacity: 1; }
+
+/* Matiz por mes */
+.m-1 { --h: 280; }
+.m-2 { --h: 260; }
+.m-3 { --h: 240; }
+.m-4 { --h: 180; }
+.m-5 { --h: 120; }
+.m-6 { --h: 80; }
+.m-7 { --h: 80; }
+.m-8 { --h: 120; }
+.m-9 { --h: 180; }
+.m-10 { --h: 240; }
+.m-11 { --h: 260; }
+.m-12 { --h: 280; }
+
+.x::-webkit-scrollbar { display: none; }
+
+button {
+  background: #333;
+  color: white;
+  border: 1px solid #999;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: monospace;
+  margin-top: 0.5rem;
+}
+
+button:hover {
+  background: #444;
+}
+
+.tracker {
+  border: 1px solid #999;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #1b1b1b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tracker-name {
+  font-size: 1rem;
+  border: none;
+  background: transparent;
+  color: white;
+  border-bottom: 1px dashed #999;
+  outline: none;
+  width: fit-content;
+  cursor: text;
+}
+</style>
 </head>
 <body>
-  <h2>Habit Tracker</h2>
-  <div class="habit"><input type="checkbox" id="agua"> Beber agua</div>
-  <div class="habit"><input type="checkbox" id="leer"> Leer 20 min</div>
-  <div class="habit"><input type="checkbox" id="ejercicio"> Hacer ejercicio</div>
-  <div class="habit"><input type="checkbox" id="meditar"> Meditar</div>
 
-  <button class="reset" onclick="resetHabits()">Reiniciar Hábitos</button>
+<button id="newTrackerBtn">Nuevo Tracker</button>
+<div class="wrapper" id="trackersWrapper">
+</div>
 
-  <script>
-    const habits = ["agua", "leer", "ejercicio", "meditar"];
+<script>
+const trackersWrapper = document.getElementById('trackersWrapper');
 
-    // Cargar estado guardado
-    habits.forEach(habit => {
-      const checkbox = document.getElementById(habit);
-      const saved = localStorage.getItem(habit);
-      if (saved === "true") checkbox.checked = true;
-      checkbox.addEventListener("change", () => {
-        localStorage.setItem(habit, checkbox.checked);
-      });
+function createTracker({isFirst=false}) {
+  const tracker = document.createElement('div');
+  tracker.classList.add('tracker');
+
+  // Nombre editable
+  const trackerName = document.createElement('input');
+  trackerName.classList.add('tracker-name');
+  trackerName.value = isFirst ? 'Tracker 20 pesos por click' : 'Tracker 1 por click';
+  tracker.appendChild(trackerName);
+
+  // Contenedor de días
+  const graph = document.createElement('div');
+  graph.classList.add('x');
+  const activityGraph = document.createElement('div');
+  activityGraph.id = 'activity-graph';
+  graph.appendChild(activityGraph);
+  tracker.appendChild(graph);
+
+  // Contador
+  const counter = document.createElement('div');
+  counter.textContent = 'Total: 0';
+  tracker.appendChild(counter);
+
+  // Botón reiniciar
+  const resetBtn = document.createElement('button');
+  resetBtn.textContent = 'Reiniciar';
+  resetBtn.addEventListener('click', () => {
+    activityGraph.querySelectorAll('.day').forEach(d => d.className='day level-0');
+    counter.textContent = 'Total: 0';
+  });
+  tracker.appendChild(resetBtn);
+
+  // Generar días del año
+  const year = new Date().getFullYear();
+  const firstDay = new Date(year, 0, 1);
+  const dayOfWeek = firstDay.getDay();
+  const offset = (dayOfWeek + 6) % 7;
+
+  for(let i=0;i<offset;i++) activityGraph.appendChild(document.createElement('span'));
+
+  const daysInYear = ((year%4===0 && year%100!==0) || year%400===0)?366:365;
+
+  for(let i=1;i<=daysInYear;i++){
+    const date = getDateFromDayOfYear(i, year);
+    const day = document.createElement('div');
+    day.classList.add('day','level-0',`m-${date.getMonth()+1}`);
+
+    let level = 0;
+    day.addEventListener('click', () => {
+      level = (level+1)%5;
+      day.className = 'day';
+      day.classList.add(`level-${level}`, `m-${date.getMonth()+1}`);
+
+      const clicked = Array.from(activityGraph.querySelectorAll('.day'))
+        .filter(d=>!d.className.includes('level-0')).length;
+      counter.textContent = 'Total: ' + (isFirst ? clicked*20 : clicked*1);
     });
 
-    function resetHabits() {
-      habits.forEach(habit => {
-        localStorage.setItem(habit, false);
-        document.getElementById(habit).checked = false;
-      });
-    }
-  </script>
+    activityGraph.appendChild(day);
+  }
+
+  trackersWrapper.appendChild(tracker);
+}
+
+function getDateFromDayOfYear(dayOfYear, year) {
+  const start = new Date(year,0,1);
+  start.setDate(start.getDate() + (dayOfYear-1));
+  return start;
+}
+
+// Crear primer tracker
+createTracker({isFirst:true});
+
+// Botón para crear nuevos trackers
+document.getElementById('newTrackerBtn').addEventListener('click', ()=>{
+  createTracker({isFirst:false});
+});
+</script>
+
 </body>
 </html>
