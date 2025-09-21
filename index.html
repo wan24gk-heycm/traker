@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Habit Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .habit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px 0;
+      font-size: 18px;
+    }
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .reset {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .reset:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Habit Tracker</h2>
+  <div class="habit"><input type="checkbox" id="agua"> Beber agua</div>
+  <div class="habit"><input type="checkbox" id="leer"> Leer 20 min</div>
+  <div class="habit"><input type="checkbox" id="ejercicio"> Hacer ejercicio</div>
+  <div class="habit"><input type="checkbox" id="meditar"> Meditar</div>
+
+  <button class="reset" onclick="resetHabits()">Reiniciar Hábitos</button>
+
+  <script>
+    const habits = ["agua", "leer", "ejercicio", "meditar"];
+
+    // Cargar estado guardado
+    habits.forEach(habit => {
+      const checkbox = document.getElementById(habit);
+      const saved = localStorage.getItem(habit);
+      if (saved === "true") checkbox.checked = true;
+      checkbox.addEventListener("change", () => {
+        localStorage.setItem(habit, checkbox.checked);
+      });
+    });
+
+    function resetHabits() {
+      habits.forEach(habit => {
+        localStorage.setItem(habit, false);
+        document.getElementById(habit).checked = false;
+      });
+    }
+  </script>
+</body>
+</html>
